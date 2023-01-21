@@ -23,10 +23,10 @@ Unumber::Unumber(string str){
 
 int *Unumber::slice(int num){
     int *sliced = new int[2];
-    sliced[0] = num % (int)1e9;
-    if(sliced[0] == 0)
+    sliced[1] = num % (int)1e9;
+    if(sliced[1] == 0)
         return sliced;
-    sliced[1] = num - (sliced[0] * 1e9);
+    sliced[0] = num - (sliced[1] * 1e9);
     return sliced;
 }
 
@@ -47,19 +47,19 @@ void Unumber::set(int num){
 
 void Unumber::set(string str){
     if(is_number(str)){
-        int blocks = ceil(str.length() / 8);
-        string *sliced = new string[blocks];
-        for(int i = str.length(); i >= 0; i--){
-            sliced[(int)floor(i / 8)][i % 8] = str[i - 1];
-        }
+        int blocks = ceil((float)str.length() / 8);
         for(int i = 0; i < blocks; i++){
-            chunks.push_back(stoi(sliced[i]));
+            chunks.push_back(stoi(str.substr(i * 8, 8)));
         }
     }
 }
 
 void Unumber::print()const{
-    for(int i = 0; i < chunks.size(); i++){
+    for(int i = 0; i < (int)chunks.size(); i++){
+        if(i != (int)chunks.size() - 1)
+            for(int i = 0; i <= 9 - (int)floor(log10(chunks[i])); i++)
+                cout << "0";
         cout << chunks[i];
     }
+    cout << endl;
 }
