@@ -8,14 +8,15 @@ using std::string;
 class Unumber{
 private:
     vector<int> chunks;
-    bool is_positive;
+    int sign;
     bool is_number(const string& s);
-    int *slice(int num);
+    int *slice(int num)const;
 public:
     Unumber();
     Unumber(int num);
     Unumber(string str);
     ~Unumber();
+    Unumber operator+(Unumber *temp)const;
     void set(int num);
     void set(string str);
     void print()const;
