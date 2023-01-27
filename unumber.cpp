@@ -99,5 +99,51 @@ Unumber Unumber::operator+(Unumber temp)const{
            result.chunks[i] = summ;
        }
    }
+   result.check_sign();
    return result;
+}
+
+Unumber Unumber::operator-(Unumber temp)const{
+   vector<int> chunks1 = this->chunks;
+   vector<int> chunks2 = temp.chunks;
+   Unumber result;
+
+   int chunks_num = (chunks1.size() > chunks2.size()) ? chunks1.size() : chunks2.size();
+   int summ = 0;
+   result.chunks.resize(chunks_num + 1);
+   for(int i = 0; i < chunks_num; i++){
+       summ = chunks1[i] - chunks2[i] + result.chunks[i];
+       if(summ > (int)1e9){
+           int *sliced = slice(summ);
+           result.chunks[i] = sliced[0];
+           result.chunks[i + 1] = sliced[1];
+       }
+       else{
+           result.chunks[i] = summ;
+       }
+   }
+   result.check_sign();
+   return result;
+}
+
+void Unumber::check_sign(){
+    if(chunks[chunks.size() - 1] == 0){
+        for(int i = chunks.size() - 1; i < 0; i--)
+            chunks[i - 1] = chunks[i];
+        chunks.resize(chunks.size() - 1);
+    }
+    for(int k = 0; k < 2; k++)
+        if(chunks.size() != 0){
+            bool positive = (chunks.size() - 1 < 0) ? 0 : 1;
+            for(int i = 0; i < (int)chunks.size() - 1; i++){
+                if(chunks[i] < 0 && positive){
+                    chunks[i] = (int)1e9 + chunks[i];
+                    chunks[i + 1] -= 1;
+                }
+                else if(chunks[i] > 0 && !positive){
+                    chunks[i] = (int)1e9 - chunks[i];
+                    chunks[i + 1] += 1;
+                }
+            }
+        }
 }
