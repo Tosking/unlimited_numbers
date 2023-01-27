@@ -16,9 +16,9 @@ public:
     Unumber(int num);
     Unumber(string str);
     ~Unumber();
-    Unumber operator+(Unumber *temp)const;
+    Unumber operator+(Unumber temp)const;
     void set(int num);
-    void set(string str);
+    void set(string &str);
     void print()const;
 };
 

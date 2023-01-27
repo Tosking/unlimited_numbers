@@ -21,6 +21,9 @@ Unumber::Unumber(string str){
     set(str);
 }
 
+Unumber::~Unumber(){}
+
+
 int *Unumber::slice(int num)const{
     int *sliced = new int[2];
     sliced[0] = num % (int)1e9;
@@ -33,6 +36,9 @@ void Unumber::set(int num){
         sign = -1;
         num *= -1;
     }
+    else{
+        sign = 1;
+    }
     if(num < 1e9){
         chunks.push_back(num * sign);
     }
@@ -43,7 +49,7 @@ void Unumber::set(int num){
     }
 }
 
-void Unumber::set(string str){
+void Unumber::set(string &str){
     if(str[0] == '-'){
         sign = -1;
         str[0] = '0';
@@ -53,8 +59,13 @@ void Unumber::set(string str){
     }
     if(is_number(str)){
         int blocks = ceil((float)str.length() / 8);
-        for(int i = blocks; i > 0; i--){
-            chunks.push_back(stoi(str.substr(i * 8, 8)) * sign);
+        vector<string> result;
+        result.resize(blocks);
+        for(int i = 0; i < (int)str.length(); i++){
+            result[(i + (8 - str.length() % 8)) / 8] += str[i];
+        }
+        for(int i = blocks - 1; i >= 0; i--){
+            chunks.push_back(stoi(result[i]) * sign);
         }
     }
 }
@@ -62,16 +73,16 @@ void Unumber::set(string str){
 void Unumber::print()const{
     for(int i = 0; i < (int)chunks.size(); i++){
         if(i != (int)chunks.size() - 1)
-            for(int k = 9 - (int)floor(log10(chunks[i])); k > 0; k--)
-                cout << "0";
-        cout << chunks[i];
+            //for(int k = 9 - (int)floor(log10(chunks[i])); k > 0; k--)
+                //cout << "0";
+        cout << chunks[i] << "|";
     }
     cout << endl;
 }
 
-Unumber Unumber::operator+(Unumber *temp)const{
+Unumber Unumber::operator+(Unumber temp)const{
    vector<int> chunks1 = this->chunks;
-   vector<int> chunks2 = temp->chunks;
+   vector<int> chunks2 = temp.chunks;
    Unumber result;
 
    int chunks_num = (chunks1.size() > chunks2.size()) ? chunks1.size() : chunks2.size();
