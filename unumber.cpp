@@ -71,8 +71,8 @@ void Unumber::set(string &str){
 }
 
 void Unumber::print()const{
-    for(int i = 0; i < (int)chunks.size(); i++){
-        if(i != (int)chunks.size() - 1)
+    for(int i = chunks.size() - 1; i >= 0 ; i--){
+        //if(i != (int)chunks.size() - 1)
             //for(int k = 9 - (int)floor(log10(chunks[i])); k > 0; k--)
                 //cout << "0";
         cout << chunks[i] << "|";
