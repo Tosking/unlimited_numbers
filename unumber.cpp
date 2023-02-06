@@ -1,4 +1,5 @@
 #include "unumber.h"
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <string>
@@ -146,4 +147,31 @@ void Unumber::check_sign(){
                 }
             }
         }
+}
+
+string Unumber::to_binary(){
+    string result;
+    vector<double> temp;
+    for(int i = 0; i < chunks.size(); i++)
+        temp.push_back(chunks[i]);
+    while(chunks[chunks.size() - 1] >= 1){
+        for(int i = 0; i < chunks.size(); i++){
+            temp[i] /= 2;
+            if(temp[i] > 1 && temp[i] != 0 && i != 0){
+                temp[i - 1] += 5e8;
+                temp[i] = 0;
+            }
+            if(i == 0 && ((int)temp[i] + 1) % 2 != 0){
+                result += "1";
+                temp[i] = floor(temp[i]);
+            }
+            else if(i == 0){
+                result += "0";
+            }
+        }
+        if(temp[0] == 0)
+            break;
+    }
+    reverse(result.begin(), result.end());
+    return result;
 }
