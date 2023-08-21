@@ -19,13 +19,17 @@ public:
     ~Unumber();
     Unumber operator+(Unumber temp)const;
     Unumber operator-(Unumber temp)const;
+    Unumber operator-(int temp)const;
     Unumber operator*(Unumber temp)const;
+    Unumber operator*(int temp)const;
     Unumber operator/(Unumber temp)const;
+    Unumber operator/(int temp)const;
     int size();
     string to_binary();
     void set(int num);
     void set(string &str);
     void print()const;
+    void _debug()const;
 };
 
 
