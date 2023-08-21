@@ -2,15 +2,14 @@
 #define UNUMBER_H_
 #include <string>
 #include <vector>
+#include <cstdint>
 using std::vector;
 using std::string;
 
 class Unumber{
 private:
-    vector<int> chunks;
-    int sign;
+    vector<int8_t> dig;
     bool is_number(const string& s);
-    int *slice(int num)const;
     void check_sign();
 public:
     Unumber();
@@ -18,6 +17,7 @@ public:
     Unumber(string str);
     ~Unumber();
     Unumber operator+(Unumber temp)const;
+    Unumber operator+(int temp)const;
     Unumber operator-(Unumber temp)const;
     Unumber operator-(int temp)const;
     Unumber operator*(Unumber temp)const;
