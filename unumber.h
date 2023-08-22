@@ -24,6 +24,8 @@ public:
     Unumber operator*(int temp)const;
     Unumber operator/(Unumber temp)const;
     Unumber operator/(int temp)const;
+    bool operator>(Unumber temp)const;
+    bool operator<(Unumber temp)const;
     int size();
     string to_binary();
     void set(int num);
