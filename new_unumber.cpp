@@ -194,7 +194,7 @@ Unumber Unumber::operator/(Unumber temp)const{
     Unumber utemp(0);
 
     if(*this < temp || (dig2.size() == 1 && dig2[0] == 0))
-        return;
+        return result;
     while(1){
         while(1){
             if((utemp + temp) < *this){
