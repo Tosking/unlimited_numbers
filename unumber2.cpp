@@ -15,25 +15,10 @@ private:
         }
     }
 
-    void makeNegative(int n) {}
-    Unumber difForDivision(Unumber first, Unumber other) const{
-        Unumber result;
-        int carry = 0;
-        for (int i = 0; i < first.digits.size(); i++) {
-            int diff = first.digits[i] - carry;
-            if (i < other.digits.size()) {
-                diff -= other.digits[i];
-            }
-            if (diff < 0) {
-                carry = 1;
-                diff += 10;
-            } else {
-                carry = 0;
-            }
-            result.digits.push_back(diff);
-        }
-        result.removeLeadingZeros();
-        return result;
+    bool ifConvertAvailable() const {
+        if(*this <= Unumber((int)1e9) && *this >= Unumber((int)-1e9))
+            return true;
+        return false;
     }
 
     void removeLeadingDigits(){
@@ -63,58 +48,71 @@ public:
         }
     }
 
+    Unumber(string str) {
+        int sign = 1;
+        if(str[0] == '-'){
+            sign = -1;
+            str = str.substr(1);
+        }
+        for(int i = str.length() - 1; i >= 0; i--){
+            if(!isdigit(str[i])){
+                digits = vector<int> {0};
+                return;
+            }
+            digits.push_back((str[i] - '0') * sign);
+        }
+    }
+
     Unumber operator+(const Unumber& other) const {
+        Unumber op1 = *this;
+        Unumber op2 = other;
+        if((op1 < Unumber(0) && op2 < Unumber(0)) || (op1 < Unumber(0) && op2 > Unumber(0))){
+            op1 = op1 * Unumber(-1);
+            op2 = op2 * Unumber(-1);
+        }
+
         Unumber result;
         int carry = 0;
         int i = 0;
-        while (i < digits.size() || i < other.digits.size() || carry > 0) {
+        while (i < op1.digits.size() || i < op2.digits.size() || carry > 0) {
             if (i < digits.size()) {
-                carry += digits[i];
+                carry += op1.digits[i];
             }
-            if (i < other.digits.size()) {
-                carry += other.digits[i];
+            if (i < op2.digits.size()) {
+                carry += op2.digits[i];
             }
-            result.digits.push_back(carry % 10);
-            carry /= 10;
+            if(carry < 0){
+                result.digits.push_back(10 + carry);
+                carry = -1;
+            }
+            else if(carry > 10){
+                result.digits.push_back(carry - 10);
+                carry = 1;
+            }
+            else{
+                result.digits.push_back(carry);
+                carry = 0;
+            }
             i++;
         }
+        if(other < Unumber(0) && (other * Unumber(-1)) > *this || op1 > *this){
+            for_each(result.digits.begin(), result.digits.end(), [](int& n) {
+                if(n > 0)
+                    n *= -1;
+            });
+        }
+        else{
+            for_each(result.digits.begin(), result.digits.end(), [](int& n) {
+                if(n < 0)
+                    n *= -1;
+            });
+        }
+        result.removeLeadingZeros();
         return result;
     }
 
     Unumber operator-(const Unumber& other) const {
-        if(toInteger() != 0 && other.toInteger() != 0){
-            return Unumber(toInteger() - other.toInteger());
-        }
-        Unumber result;
-        Unumber bigger;
-        Unumber smaller;
-        int carry = 0;
-        if(other.digits.size() > digits.size()){
-            bigger = other;
-            smaller = *this;
-        }
-        else {
-            smaller = other;
-            bigger = *this;
-        }
-        for (int i = 0; i < bigger.digits.size(); i++) {
-            int diff = bigger.digits[i] - carry;
-            if (i < smaller.digits.size()) {
-                if (abs(diff) < abs(smaller.digits[i])) {
-                    carry = (diff >= 0) - (diff < 0);
-                } else {
-                    carry = 0;
-                }
-                diff -= smaller.digits[i];
-                diff *= (carry >= 0) - (carry < 0);
-            }
-            result.digits.push_back(diff);
-        }
-        if(other > *this){
-            for_each(result.digits.begin(), result.digits.end(), [](int& n) {n *= -1;});
-        }
-        result.removeLeadingZeros();
-        return result;
+        return *this + (other * Unumber(-1));
     }
 
     Unumber operator*(const Unumber& other) const {
@@ -188,8 +186,9 @@ public:
     }
 
     Unumber operator/(const Unumber& other) const {
-        if(toInteger() != 0 && other.toInteger() != 0){
-            return Unumber(toInteger() / other.toInteger());
+        if(ifConvertAvailable() && other.ifConvertAvailable()){
+            if(other.toInteger() != 0)
+                return Unumber(toInteger() / other.toInteger());
         }
         Unumber result;
         if (other.digits.size() == 1 && other.digits[0] == 0) {
@@ -224,10 +223,11 @@ public:
         if(*this < Unumber(0))
             result += "-";
         Unumber temp = *this < 0 ? *this * Unumber(-1) : *this;
+        int i = 0;
         while(temp > Unumber(0)){
             Unumber tempDiv2 = temp / Unumber(2);
             Unumber tempDif = temp - tempDiv2;
-            cout << temp - tempDiv2 << " " << temp  << " " << tempDiv2 << endl;
+            cout<< ++i << ": " << tempDif << " " << temp  << " " << tempDiv2 << endl;
             if(tempDif > tempDiv2){
                 result += "1";
             }
@@ -236,6 +236,7 @@ public:
             }
             temp = tempDiv2;
         }
+        reverse(result.begin(), result.end());
         return result;
     }
 
@@ -251,8 +252,8 @@ public:
 };
 
 int main() {
-    Unumber num1 = Unumber(-321678327);
-    Unumber num2 = Unumber(-128);
+    Unumber num1 = Unumber(321678327);
+    Unumber num2 = Unumber("132321789783");
 
     //Unumber sum = num1 + num2;
     //cout << "Sum: " << sum << endl;
