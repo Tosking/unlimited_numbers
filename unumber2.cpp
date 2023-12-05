@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <cmath>
 
 using namespace std;
 
@@ -32,6 +33,18 @@ private:
         }
         result.removeLeadingZeros();
         return result;
+    }
+
+    void removeDigits(){
+        for(int i = 0; i < digits.size(); i++){
+            if(abs(digits[i]) > 9){
+                if(i + 1 >= digits.size()){
+                    digits.push_back(0);
+                }
+                digits[i + 1] += floor(digits[i] / 10);
+                digits[i] = digits[i] % 10;
+            }
+        }
     }
 
 public:
@@ -170,14 +183,14 @@ public:
 
             result.digits[i] = mult;
         }
-
+        result.removeDigits();
         result.removeLeadingZeros();
         return result;
     }
 
     friend ostream& operator<<(ostream& os, const Unumber& num) {
         for (int i = num.digits.size() - 1; i >= 0; i--) {
-            os << num.digits[i];
+            os << " " << num.digits[i];
         }
         return os;
     }
