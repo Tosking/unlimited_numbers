@@ -2,13 +2,16 @@
 #include <vector>
 #include <algorithm>
 #include <cmath>
+#include <stdexcept>
 #include <unistd.h>
+#include <cstdint>
 
 using namespace std;
 
 class Unumber {
 private:
-    vector<int> digits;
+    vector<int8_t> digits;
+    bool negative = false;
     void removeLeadingZeros() {
         while (digits.size() > 1 && digits.back() == 0) {
             digits.pop_back();
@@ -16,7 +19,7 @@ private:
     }
 
     bool ifConvertAvailable() const {
-        if(*this <= Unumber((int)1e9) && *this >= Unumber((int)-1e9))
+        if(*this <= Unumber((int)1e9))
             return true;
         return false;
     }
@@ -33,11 +36,6 @@ private:
         }
     }
 
-    void changeSign(){
-        for(int i = 0; i < digits.size(); i++)
-            digits[i] *= -1;
-    }
-
 public:
     Unumber() {
     }
@@ -45,6 +43,10 @@ public:
     Unumber(int num) {
         if (num == 0) {
             digits.push_back(0);
+        if (num < 0){
+            negative = true;
+            num *= -1;
+        }
         } else {
             while (num != 0) {
                 digits.push_back(num % 10);
@@ -54,37 +56,26 @@ public:
     }
 
     Unumber(string str) {
-        int sign = 1;
         if(str[0] == '-'){
-            sign = -1;
+            negative = true;
             str = str.substr(1);
         }
         for(int i = str.length() - 1; i >= 0; i--){
             if(!isdigit(str[i])){
-                digits = vector<int> {0};
-                return;
+                throw invalid_argument("can't convert string");
             }
-            digits.push_back((str[i] - '0') * sign);
+            digits.push_back(str[i] - '0');
         }
     }
 
     Unumber operator+(const Unumber &other) const {
-        if(other < Unumber(0)){
+        if(other.negative){
             Unumber temp = other;
-            temp.changeSign();
+            temp.negative = false;
             return *this - temp;
         }
         if (digits.size() < other.digits.size()) {
             return other + *this;
-        }
-        if(*this < Unumber(0) && *this < Unumber(0)){
-            Unumber op1 = *this;
-            Unumber op2 = other;
-            op1.changeSign();
-            op2.changeSign();
-            op1 = op1 + op2;
-            op1.changeSign();
-            return op1;
         }
 
         Unumber result = *this;
@@ -100,20 +91,25 @@ public:
             carry /= 10;
         }
 
+        if(negative && other.negative){
+            result.negative = true;
+        }
+
         return result;
     }
 
     Unumber operator-(const Unumber &other) const {
-        if (digits.size() < other.digits.size()) {
-            Unumber result = other - *this;
-            result.changeSign();
-            return result;
-        }
-        if(other < Unumber(0)){
+        if(other.negative){
             Unumber temp = other;
-            temp.changeSign();
+            temp.negative = false;
             return *this + temp;
         }
+        if (digits.size() < other.digits.size()) {
+            Unumber result = other - *this;
+            result.negative = true;
+            return result;
+        }
+
 
         Unumber result = *this;
         int carry = 0;
@@ -134,12 +130,12 @@ public:
         Unumber op1 = *this;
         Unumber op2 = other;
         int sign = 1;
-        if(op1 < Unumber(0)){
-            op1.changeSign();
+        if(op1.negative){
+            op1.negative = false;
             sign *= -1;
         }
-        if(op2 < Unumber(0)){
-            op2.changeSign();
+        if(op2.negative){
+            op2.negative = false;
             sign *= -1;
         }
         result.digits.assign(op1.digits.size() + op2.digits.size(), 0);
@@ -151,45 +147,44 @@ public:
                 carry = prod / 10;
             }
         }
-        for(int i = 0; i < result.digits.size(); i++)
-            result.digits[i] *= sign;
+        result.negative = sign == -1 ? 1 : 0;
         result.removeLeadingZeros();
         return result;
     }
 
     bool operator>(const Unumber& other) const {
-        if(digits[digits.size() - 1] < 0 && other.digits[other.digits.size() - 1] >= 0)
+        if(negative && !other.negative)
             return false;
-        else if(digits[digits.size() - 1] >= 0 && other.digits[other.digits.size() - 1] < 0)
+        else if(!negative && other.negative)
             return true;
         else if(digits.size() > other.digits.size())
-            return true;
+            return negative ? false : true;
         else if(digits.size() < other.digits.size())
-            return false;
+            return negative ? true : false;
         else
             for(int i = digits.size() - 1; i >= 0; i--)
                 if(digits[i] > other.digits[i])
-                    return true;
+                    return negative ? false : true;
                 else if(digits[i] < other.digits[i])
-                    return false;
+                    return negative ? true : false;
         return false;
     }
 
     bool operator>=(const Unumber& other) const {
-        if(digits[digits.size() - 1] < 0 && other.digits[other.digits.size() - 1] > 0)
+        if(negative && !other.negative)
             return false;
-        else if(digits[digits.size() - 1] > 0 && other.digits[other.digits.size() - 1] < 0)
+        else if(!negative && other.negative)
             return true;
-        if(digits.size() > other.digits.size())
-            return true;
+        else if(digits.size() > other.digits.size())
+            return negative ? false : true;
         else if(digits.size() < other.digits.size())
-            return false;
+            return negative ? true : false;
         else
             for(int i = digits.size() - 1; i >= 0; i--)
                 if(digits[i] > other.digits[i])
-                    return true;
+                    return negative ? false : true;
                 else if(digits[i] < other.digits[i])
-                    return false;
+                    return negative ? true : false;
         return true;
     }
 
@@ -203,7 +198,7 @@ public:
 
     int toInteger() const{
         if(*this > Unumber(2147483647) && *this < Unumber(-2147483647)){
-            return 0;
+            throw invalid_argument("can't convert number into 32 bit representation");
         }
         int result = 0;
         for(int i = 0; i < digits.size(); i++){
@@ -215,18 +210,18 @@ public:
     Unumber operator/(const Unumber& other) const {
         Unumber result;
         if (other.digits.size() == 1 && other.digits[0] == 0) {
-            return Unumber();
+            throw invalid_argument("division by zero");
         }
 
         Unumber dividend = *this;
         Unumber divider = other;
         int sign = 1;
-        if(dividend < Unumber(0)){
-            dividend.changeSign();
+        if(dividend.negative){
+            dividend.negative = false;
             sign *= -1;
         }
-        if(divider < Unumber(0)){
-            divider.changeSign();
+        if(divider.negative){
+            divider.negative = false;
             sign *= -1;
         }
 
@@ -249,14 +244,14 @@ public:
         }
         result.removeLeadingDigits();
         result.removeLeadingZeros();
-        for(int i = 0; i < result.digits.size(); i++)
-            result.digits[i] *= sign;
+        result.negative = sign == -1 ? 1 : 0;
         return result;
     }
 
     string toBinary(){
         string result = "";
-        Unumber temp = *this < 0 ? *this * Unumber(-1) : *this;
+        Unumber temp = *this;
+        temp.negative = false;
         int i = 0;
         while(temp > Unumber(0)){
             Unumber tempDiv2 = temp / Unumber(2);
@@ -270,7 +265,7 @@ public:
             }
             temp = tempDiv2;
         }
-        if(*this < Unumber(0))
+        if(negative)
             result += "-";
         reverse(result.begin(), result.end());
         return result;
@@ -278,18 +273,21 @@ public:
 
     friend ostream& operator<<(ostream& os, const Unumber& num) {
         int sign = 1;
+        if(num.negative)
+            os << "-";
         for (int i = num.digits.size() - 1; i >= 0; i--) {
-            os << num.digits[i] * sign;
-            if(num < 0)
-                sign = -1;
+            os << (int)num.digits[i] * sign;
         }
         return os;
+    }
+    int getBytes(){
+        return 8 * digits.size();
     }
 };
 
 int main() {
     Unumber num1 = Unumber("32718981839");
-    Unumber num2 = Unumber("1378727843291287384629");
+    Unumber num2 = Unumber("-1378727843291287384629");
 
     cout << "Sum: " <<  num1 + num2 << endl;
 
@@ -300,6 +298,9 @@ int main() {
     cout << "Div: " << num2 / num1 << endl;
 
     cout << "Num2 Binary: " << num2.toBinary() << endl;
+
+    cout << "Num2 Bytes: " << num2.getBytes() << endl;
+    
 
     return 0;
 }
