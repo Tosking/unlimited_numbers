@@ -43,15 +43,14 @@ public:
     Unumber(int num) {
         if (num == 0) {
             digits.push_back(0);
+        }
         if (num < 0){
             negative = true;
             num *= -1;
         }
-        } else {
-            while (num != 0) {
-                digits.push_back(num % 10);
-                num /= 10;
-            }
+        while (num != 0) {
+            digits.push_back(num % 10);
+            num /= 10;
         }
     }
 
@@ -158,15 +157,15 @@ public:
         else if(!negative && other.negative)
             return true;
         else if(digits.size() > other.digits.size())
-            return negative ? false : true;
+            return !negative;
         else if(digits.size() < other.digits.size())
-            return negative ? true : false;
+            return negative;
         else
             for(int i = digits.size() - 1; i >= 0; i--)
                 if(digits[i] > other.digits[i])
-                    return negative ? false : true;
+                    return !negative;
                 else if(digits[i] < other.digits[i])
-                    return negative ? true : false;
+                    return negative;
         return false;
     }
 
@@ -197,7 +196,7 @@ public:
     }
 
     int toInteger() const{
-        if(*this > Unumber(2147483647) && *this < Unumber(-2147483647)){
+        if(*this > Unumber(2147483647) || *this < Unumber(-2147483647)){
             throw invalid_argument("can't convert number into 32 bit representation");
         }
         int result = 0;
@@ -225,6 +224,14 @@ public:
             sign *= -1;
         }
 
+        if(dividend < divider)
+            return Unumber(0);
+
+        if(divider.digits[0] == 1 && divider.digits.size() == 1){
+            result = *this;
+            result.negative = sign == -1 ? 1 : 0;
+            return result;
+        }
         
         result.digits.resize(dividend.digits.size());
 
@@ -236,7 +243,6 @@ public:
             int mult = 0;
             while (remainder >= divider) {
                 remainder = remainder - divider;
-                //sleep(1);
                 mult++;
             }
 
@@ -281,12 +287,12 @@ public:
         return os;
     }
     int getBytes(){
-        return 8 * digits.size();
+        return digits.size() + 1;
     }
 };
 
 int main() {
-    Unumber num1 = Unumber("32718981839");
+    Unumber num1 = Unumber("327188888839");
     Unumber num2 = Unumber("-1378727843291287384629");
 
     cout << "Sum: " <<  num1 + num2 << endl;
@@ -300,6 +306,8 @@ int main() {
     cout << "Num2 Binary: " << num2.toBinary() << endl;
 
     cout << "Num2 Bytes: " << num2.getBytes() << endl;
+
+    //cout << num1.toInteger() << endl;
     
 
     return 0;
